@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PragmaLab LS - Misurazione e Didattica della Cortesia (Italiano LS2)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js per la Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); }
+        .accent-gradient { background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- BARRA DI NAVIGAZIONE ACCADEMICA -->
+    <header class="gradient-bg text-white shadow-xl sticky top-0 z-50 border-b border-indigo-900/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                
+                <!-- Titolo & Ambito -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-11 h-11 rounded-xl accent-gradient flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-2 ring-indigo-400/30">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-extrabold text-xl tracking-tight text-white">PragmaLab LS</h1>
+                            <span class="bg-indigo-500/30 text-indigo-200 text-xs px-2.5 py-0.5 rounded-full border border-indigo-400/30 font-mono font-medium">Dottorato L-LIN/02</span>
+                        </div>
+                        <p class="text-xs text-slate-300 font-light">Misurazione e Didattica della Cortesia nell'Italiano LS2 | Repertorio: L1 Arabo, L2 Francese, LS1 Inglese</p>
+                    </div>
+                </div>
+
+                <!-- Controlli Profilo & API -->
+                <div class="flex flex-wrap items-center gap-3 text-xs">
+                    <!-- Badge Repertorio Fisso -->
+                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5 flex items-center space-x-2">
+                        <i class="fa-solid fa-language text-indigo-400"></i>
+                        <span class="text-slate-300 font-medium">Repertorio:</span>
+                        <span class="font-bold text-emerald-400">L1 Arabo</span>
+                        <span class="text-slate-500">|</span>
+                        <span class="font-bold text-sky-400">L2 Fr</span>
+                        <span class="text-slate-500">|</span>
+                        <span class="font-bold text-amber-400">LS1 Ing</span>
+                        <span class="text-slate-500">→</span>
+                        <span class="font-bold text-indigo-300 bg-indigo-900/60 px-1.5 py-0.5 rounded border border-indigo-700">LS2 Italiano</span>
+                    </div>
+
+                    <!-- Selettore QCER -->
+                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-xl p-1.5 flex items-center space-x-2">
+                        <label for="cefrSelect" class="text-slate-400 font-medium pl-1">QCER:</label>
+                        <select id="cefrSelect" onchange="updateProfile()" class="bg-slate-900 text-slate-100 rounded-lg px-2.5 py-1 border border-slate-700 focus:outline-none focus:border-indigo-500 font-bold">
+                            <option value="A1">A1 (Accoglienza / Base)</option>
+                            <option value="A2">A2 (Elementare)</option>
+                            <option value="B1">B1 (Intermedio)</option>
+                            <option value="B2" selected>B2 (Intermedio Superiore)</option>
+                            <option value="C1">C1 (Avanzato)</option>
+                        </select>
+                    </div>
+
+                    <!-- Configurazione API Key -->
+                    <button onclick="toggleApiKeyModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-200 px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        <span>API Key Gemini</span>
+                        <span id="apiKeyBadge" class="w-2 h-2 rounded-full bg-amber-400 inline-block" title="In modalità euristica locale (nessuna API inserita)"></span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SCHEDE DI NAVIGAZIONE -->
+        <div class="bg-slate-950/80 border-t border-slate-800/80 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto flex space-x-1 overflow-x-auto py-2 custom-scrollbar">
+                <button id="tab-dct" onclick="switchTab('dct')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-2 whitespace-nowrap bg-indigo-600 text-white shadow-md">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>1. Valutazione DCT & Transfer</span>
+                </button>
+                <button id="tab-roleplay" onclick="switchTab('roleplay')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>2. Role-Play & Tutor IA</span>
+                </button>
+                <button id="tab-comparative" onclick="switchTab('comparative')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-code-compare"></i>
+                    <span>3. Benchmark Tripartito</span>
+                </button>
+                <button id="tab-dashboard" onclick="switchTab('dashboard')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-2 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>4. Dashboard Ricerca (A1-C1)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- AREA DI CONTENUTO PRINCIPALE -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ==================== MODULO 1: VALUTAZIONE DCT & TRANSFER ==================== -->
+        <section id="module-dct" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Modulo 1</span>
+                            <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md" id="dctCefrBadge">QCER Selezionato: B2</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mt-1">Discourse Completion Task (DCT) & Diagnosi del Transfer</h2>
+                        <p class="text-sm text-slate-500">Seleziona lo scenario, inserisci la produzione dell'apprendente ed effettua l'analisi pragmalinguistica.</p>
+                    </div>
+
+                    <!-- Selettore Scenario -->
+                    <div class="flex space-x-1.5 bg-slate-100 p-1.5 rounded-xl overflow-x-auto">
+                        <button id="scenBtn-A" onclick="loadScenario('A')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-600 shadow-sm whitespace-nowrap">A1-A2 (Bar/Barista)</button>
+                        <button id="scenBtn-B" onclick="loadScenario('B')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap">B1-B2 (Docente/Tesi)</button>
+                        <button id="scenBtn-C" onclick="loadScenario('C')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap">C1 (Locatore/Caparra)</button>
+                    </div>
+                </div>
+
+                <!-- Scheda Dettagli Scenario -->
+                <div id="scenarioDetailsCard" class="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4 transition-all"></div>
+
+                <!-- Campo Input -->
+                <div class="mt-6 space-y-3">
+                    <label for="dctInput" class="block text-sm font-medium text-slate-700 flex justify-between">
+                        <span>Formulazione della richiesta in Italiano LS2:</span>
+                        <span class="text-xs text-indigo-600 font-normal">Repertorio: Arabo / Francese / Inglese</span>
+                    </label>
+                    <textarea id="dctInput" rows="3" class="w-full p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 placeholder-slate-400 text-sm shadow-sm" placeholder="Es. Professore buongiorno, voglio chiedere se posso avere una proroga per la tesi..."></textarea>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <i class="fa-solid fa-microscope text-indigo-500"></i>
+                            <span>Analisi CCSARP e rilevamento calchi da L1 Arabo, L2 Francese e LS1 Inglese</span>
+                        </div>
+                        <button id="analyzeDctBtn" onclick="analyzeDctSubmission()" class="w-full sm:w-auto accent-gradient text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:opacity-95 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Analizza & Registra Dati</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="dctLoading" class="hidden bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center space-y-3">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="text-sm font-medium text-slate-700">Analisi pragmalinguistica e diagnostica dei calchi in corso...</p>
+                <p class="text-xs text-slate-400">Verifica delle interferenze e calcolo dell'Indice di Cortesia</p>
+            </div>
+
+            <!-- Contenitore Risultati Analisi -->
+            <div id="dctResults" class="hidden space-y-6">
+                <!-- Griglia Punteggi -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl font-black" id="resPolitenessScore">--</div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Indice di Cortesia</span>
+                            <h4 class="text-lg font-bold text-slate-800" id="resPolitenessRating">--</h4>
+                            <p class="text-xs text-slate-500">Scala 0-100 (CCSARP)</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-black" id="resSociopragmaticScore">--</div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Adeguatezza QCER</span>
+                            <h4 class="text-lg font-bold text-slate-800" id="resSociopragmaticRating">--</h4>
+                            <p class="text-xs text-slate-500">Valutazione di Registro</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4" id="resTransferSourceCard">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl" id="resTransferIcon">
+                            <i class="fa-solid fa-code-merge"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Origine del Transfer</span>
+                            <h4 class="text-sm font-bold text-slate-800" id="resTransferSource">Nessun Calco</h4>
+                            <p class="text-xs text-slate-500" id="resTransferStatus">Produzione Autonoma</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dettaglio Analitico CCSARP -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-diagram-project text-indigo-600"></i>
+                        <span>Scomposizione Analitica CCSARP & Mitigatori</span>
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-400 uppercase">1. Atto di Testa (Head Act)</span>
+                            <p class="font-bold text-slate-800 text-base mt-1" id="resHeadActType">--</p>
+                            <p class="text-xs text-slate-600 mt-2 bg-white p-2 rounded border border-slate-200" id="resHeadActDesc">--</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-400 uppercase">2. Modificatori Interni</span>
+                            <div class="flex flex-wrap gap-1.5 mt-2" id="resInternalMods"></div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-400 uppercase">3. Modificatori Esterni</span>
+                            <div class="flex flex-wrap gap-1.5 mt-2" id="resExternalMods"></div>
+                        </div>
+                    </div>
+
+                    <!-- Spiegazione Transfer -->
+                    <div id="transferExplanationBox" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-950 text-sm space-y-1">
+                        <h5 class="font-bold flex items-center space-x-2 text-amber-900">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                            <span>Diagnosi del Pragmatic Failure & Calco Linguistico:</span>
+                        </h5>
+                        <p id="transferExplanationText" class="text-amber-900 text-xs leading-relaxed">--</p>
+                    </div>
+
+                    <!-- Scaffolding Didattico -->
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-indigo-950 space-y-2">
+                        <h5 class="font-bold text-sm text-indigo-900 flex items-center space-x-2">
+                            <i class="fa-solid fa-lightbulb text-indigo-600"></i>
+                            <span>Scaffolding Didattico & Riscrittura Suggerita in Italiano LS2:</span>
+                        </h5>
+                        <p id="resScaffolding" class="text-xs text-indigo-800 leading-relaxed">--</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== MODULO 2: ROLE-PLAY & TUTOR IA ==================== -->
+        <section id="module-roleplay" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Selezione Interlocutore -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Modulo 2</span>
+                            <h3 class="text-xl font-bold text-slate-900 mt-2">Simulatore Role-Play</h3>
+                            <p class="text-xs text-slate-500">Conversa in tempo reale. L'interlocutore reagisce emotivamente al tuo registro.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-700 uppercase">Interlocutore Virtuale:</label>
+                            
+                            <button onclick="selectInterlocutor('barista')" id="interBtn-barista" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">LU</div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-sm text-slate-900">Luigi (Barista)</h4>
+                                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">A1-A2</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Informale (P=, D+, I-)</p>
+                                </div>
+                            </button>
+
+                            <button onclick="selectInterlocutor('prof')" id="interBtn-prof" class="w-full text-left p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/50 transition flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">PR</div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-sm text-slate-900">Prof. Rossi</h4>
+                                        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded">B1-B2</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Docente Universitario (P+, D+, I+)</p>
+                                </div>
+                            </button>
+
+                            <button onclick="selectInterlocutor('padrone')" id="interBtn-padrone" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-sm">SB</div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-sm text-slate-900">Sig. Bianchi</h4>
+                                        <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">C1</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Locatore Appartamento (P+, D+, I++)</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Badge Stato Emotivo -->
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <span class="text-xs font-semibold text-slate-400 uppercase block">Stato Emotivo Interlocutore:</span>
+                            <span id="interlocutorMoodBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Disponibile</span>
+                        </div>
+
+                        <button onclick="resetRoleplayChat()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Ricomincia Conversazione</button>
+                    </div>
+                </div>
+
+                <!-- Finestra Chat & Widget Live -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[520px]">
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
+                            <div class="flex items-center space-x-3">
+                                <div id="chatAvatar" class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">PR</div>
+                                <div>
+                                    <h4 id="chatTitle" class="font-bold text-sm text-slate-900">Prof. Rossi</h4>
+                                    <p id="chatSubtitle" class="text-xs text-slate-500">Simulazione dialogo accademico (B1-B2)</p>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1 rounded-full">Interactive Chat</span>
+                        </div>
+
+                        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/30"></div>
+
+                        <div class="p-3 border-t border-slate-100 bg-white rounded-b-2xl flex space-x-2">
+                            <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendRoleplayMessage()" class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Scrivi in italiano LS2...">
+                            <button onclick="sendRoleplayMessage()" class="accent-gradient text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-95 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="liveAnalysisBox" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
+                                <span>Analisi Pragmatica Live dell'Ultimo Turno</span>
+                            </h4>
+                            <span id="turnPolitenessBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">In attesa di input...</span>
+                        </div>
+                        <div id="turnFeedbackText" class="text-xs text-slate-600 space-y-1">
+                            Invia il tuo primo messaggio per ricevere la diagnosi sui calchi.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== MODULO 3: BENCHMARK COMPARATIVO ==================== -->
+        <section id="module-comparative" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Modulo 3</span>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-2">Analisi Comparativa Tripartita</h2>
+                    <p class="text-sm text-slate-500">Confronto affiancato tra Apprendente LS2, Parlante Nativo e IA Generativa.</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <span class="font-bold text-sm text-slate-800">Seleziona lo Scenario per il Confronto:</span>
+                    <select id="compScenarioSelect" onchange="updateComparativeView()" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800">
+                        <option value="A">A1-A2: Barista / Informazione</option>
+                        <option value="B" selected>B1-B2: Proroga Tesi al Docente</option>
+                        <option value="C">C1: Restituzione Caparra Locatore</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="border-2 border-indigo-200 rounded-2xl p-5 bg-indigo-50/20 space-y-3">
+                        <span class="text-xs font-bold uppercase text-indigo-700 bg-indigo-100 px-2 py-1 rounded">Apprendente LS2</span>
+                        <div class="p-3 bg-white rounded-xl border border-indigo-100 text-sm italic min-h-[90px]" id="compStudentText">"Professore buongiorno, voglio chiedere una proroga..."</div>
+                        <p class="text-xs text-amber-700 font-semibold" id="compStudentTransfer">Calco LS1 Inglese ("want to ask")</p>
+                    </div>
+
+                    <div class="border-2 border-emerald-200 rounded-2xl p-5 bg-emerald-50/20 space-y-3">
+                        <span class="text-xs font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Parlante Nativo (Modello)</span>
+                        <div class="p-3 bg-white rounded-xl border border-emerald-100 text-sm italic min-h-[90px]" id="compNativeText">"Gentilissimo Professore, Le scrivo per chiederLe se fosse possibile..."</div>
+                        <p class="text-xs text-emerald-600 font-semibold">Mitigatore Morfologico + Congiuntivo</p>
+                    </div>
+
+                    <div class="border-2 border-sky-200 rounded-2xl p-5 bg-sky-50/20 space-y-3">
+                        <span class="text-xs font-bold uppercase text-sky-700 bg-sky-100 px-2 py-1 rounded">IA Generativa (Gemini)</span>
+                        <div class="p-3 bg-white rounded-xl border border-sky-100 text-sm italic min-h-[90px]" id="compAiText">"Egregio Professore, Le sarei davvero grato se potesse..."</div>
+                        <p class="text-xs text-sky-600 font-semibold">Modellizzazione Probabilistica Nativa</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== MODULO 4: DASHBOARD RICERCA & EXPORT ==================== -->
+        <section id="module-dashboard" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Modulo 4</span>
+                        <h2 class="text-2xl font-bold text-slate-900 mt-2">Dashboard Ricerca & Esportazione Dataset</h2>
+                        <p class="text-sm text-slate-500">Misurazione e dati aggregati pronti per l'analisi statistica in SPSS, R o Python.</p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportResearchData('json')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-code text-amber-400"></i>
+                            <span>Esporta JSON</span>
+                        </button>
+                        <button onclick="exportResearchData('csv')" class="px-3.5 py-2 accent-gradient hover:opacity-95 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-file-csv text-emerald-300"></i>
+                            <span>Esporta CSV (SPSS/R)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPIs -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Totale Rilevazioni</span>
+                        <h3 class="text-2xl font-black text-slate-900 mt-1" id="statTotalSessions">0</h3>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Media Indice Cortesia</span>
+                        <h3 class="text-2xl font-black text-indigo-600 mt-1" id="statAvgPoliteness">0/100</h3>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Frequenza Transfer</span>
+                        <h3 class="text-2xl font-black text-amber-600 mt-1" id="statFailureRate">0%</h3>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="text-xs font-semibold text-slate-400 uppercase">Lingua Target</span>
+                        <h3 class="text-sm font-bold text-slate-900 mt-2">Italiano LS2</h3>
+                    </div>
+                </div>
+
+                <!-- Grafici -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                        <h4 class="text-sm font-bold text-slate-800 mb-3"><i class="fa-solid fa-chart-pie text-indigo-600 mr-2"></i>Padronanza Componenti CCSARP (%)</h4>
+                        <div class="h-64 flex items-center justify-center"><canvas id="ccsarpRadarChart"></canvas></div>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                        <h4 class="text-sm font-bold text-slate-800 mb-3"><i class="fa-solid fa-chart-bar text-emerald-600 mr-2"></i>Indice Cortesia per Livello QCER</h4>
+                        <div class="h-64 flex items-center justify-center"><canvas id="cefrBarChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Tabella Registri -->
+                <div class="space-y-3 pt-4">
+                    <h4 class="text-sm font-bold text-slate-900">Registro Storico delle Rilevazioni (Campione Dottorato)</h4>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+                        <table class="w-full text-left text-xs text-slate-700">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">QCER</th>
+                                    <th class="p-3">Scenario</th>
+                                    <th class="p-3">Indice Cortesia</th>
+                                    <th class="p-3">Fonte Transfer</th>
+                                    <th class="p-3">Atto di Testa</th>
+                                    <th class="p-3">Testo Prodotto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionLogTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- API KEY MODAL -->
+    <div id="apiKeyModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <i class="fa-solid fa-key text-amber-500"></i>
+                    <span>Configurazione Gemini API Key</span>
+                </h3>
+                <button onclick="toggleApiKeyModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-600">Inserisci la tua API Key personale di Google Gemini. Se lasci il campo vuoto, l'app utilizzerà l'algoritmo euristico locale.</p>
+            <input type="password" id="customApiKeyInput" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="AIzaSy...">
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="toggleApiKeyModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl">Annulla</button>
+                <button onclick="saveCustomApiKey()" class="px-4 py-2 accent-gradient text-white text-xs font-semibold rounded-xl">Salva Chiave</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT COMPLETA E OPERATIVA -->
+    <script>
+        // STABILIMENTO DELLO STATO GLOBALE DELLA RICERCA
+        const state = {
+            profile: { cefr: 'B2', l1: 'Arabo', l2: 'Francese', ls1: 'Inglese', ls2: 'Italiano' },
+            apiKey: '',
+            activeTab: 'dct',
+            currentScenario: 'B',
+            currentInterlocutor: 'prof',
+            chatHistory: [],
+            researchData: [
+                { id: 'S-201', cefr: 'A1', scenario: 'A', politeness: 38, transfer: 'L1 Arabo (Direttezza)', headAct: 'Diretto', text: 'Dammi un caffè e acqua.' },
+                { id: 'S-202', cefr: 'A2', scenario: 'A', politeness: 52, transfer: 'LS1 Inglese ("Can I")', headAct: 'Diretto', text: 'Posso avere un caffè per favore?' },
+                { id: 'S-203', cefr: 'B1', scenario: 'B', politeness: 61, transfer: 'L2 Francese ("Je voudrais")', headAct: 'Indiretto Conv.', text: 'Vorrei chiedere una proroga per la tesi.' },
+                { id: 'S-204', cefr: 'B2', scenario: 'B', politeness: 74, transfer: 'Nessuno (Rigido)', headAct: 'Indiretto Conv.', text: 'Professore, Le chiedo se posso avere una proroga.' },
+                { id: 'S-205', cefr: 'C1', scenario: 'C', politeness: 89, transfer: 'Nessuno', headAct: 'Indiretto Conv.', text: 'Gentile Sig. Bianchi, Le chiedo cortesemente la restituzione della caparra.' }
+            ]
+        };
+
+        const scenarios = {
+            'A': { title: 'Scenario A (A1-A2): Ordinazione al Bar', context: 'Chiedi al barista (Luigi) un caffè e un bicchiere d\'acqua.', variables: { P: 'P=', D: 'D+', I: 'I-' }, badgeColor: 'bg-emerald-100 text-emerald-800', nativeIdeal: 'Buongiorno, vorrei un caffè e un bicchiere d\'acqua, per favore.', aiIdeal: 'Buongiorno! Mi darebbe un caffè e un bicchiere d\'acqua naturale?' },
+            'B': { title: 'Scenario B (B1-B2): Proroga Tesi al Docente', context: 'Devi chiedere al tuo relatore (Prof. Rossi) una proroga di due settimane per la tesi.', variables: { P: 'P+', D: 'D+', I: 'I+' }, badgeColor: 'bg-indigo-100 text-indigo-800', nativeIdeal: 'Gentilissimo Professore, Le scrivo per chiederLe se fosse possibile ottenere una breve proroga...', aiIdeal: 'Egregio Professore, Le sarei infinitamente grato se potesse valutare la possibilità di concedermi una proroga...' },
+            'C': { title: 'Scenario C (C1): Restituzione Caparra Locatore', context: 'Chiedi al proprietario di casa (Sig. Bianchi) la restituzione formale della caparra.', variables: { P: 'P+', D: 'D+', I: 'I++' }, badgeColor: 'bg-amber-100 text-amber-800', nativeIdeal: 'Gentile Sig. Bianchi, Le chiedo cortesemente se le fosse possibile provvedere all\'accredito della caparra...', aiIdeal: 'Egregio Sig. Bianchi, Le sarei grato se potesse confermarmi l\'avvenuto bonifico della caparra.' }
+        };
+
+        const interlocutors = {
+            'barista': { name: 'Luigi', title: 'Barista (A1-A2)', initials: 'LU', bg: 'bg-emerald-600' },
+            'prof': { name: 'Prof. Rossi', title: 'Docente Universitario (B1-B2)', initials: 'PR', bg: 'bg-indigo-600' },
+            'padrone': { name: 'Sig. Bianchi', title: 'Locatore Appartamento (C1)', initials: 'SB', bg: 'bg-amber-600' }
+        };
+
+        let radarChartInstance = null;
+        let barChartInstance = null;
+
+        window.onload = function() {
+            loadScenario('B');
+            initRoleplayChat();
+            renderSessionTable();
+            initCharts();
+        };
+
+        function updateProfile() {
+            state.profile.cefr = document.getElementById('cefrSelect').value;
+            document.getElementById('dctCefrBadge').innerText = `QCER Selezionato: ${state.profile.cefr}`;
+        }
+
+        function toggleApiKeyModal() {
+            document.getElementById('apiKeyModal').classList.toggle('hidden');
+        }
+
+        function saveCustomApiKey() {
+            const val = document.getElementById('customApiKeyInput').value.trim();
+            state.apiKey = val;
+            toggleApiKeyModal();
+            const badge = document.getElementById('apiKeyBadge');
+            if (val) {
+                badge.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+                badge.title = "Gemini API Attiva";
+            } else {
+                badge.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
+                badge.title = "In modalità euristica locale";
+            }
+        }
+
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            ['dct', 'roleplay', 'comparative', 'dashboard'].forEach(t => {
+                document.getElementById(`module-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-2 whitespace-nowrap";
+            });
+
+            document.getElementById(`module-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-2 whitespace-nowrap bg-indigo-600 text-white shadow-md";
+
+            if (tabId === 'comparative') updateComparativeView();
+            if (tabId === 'dashboard') updateDashboardCharts();
+        }
+
+        function loadScenario(scenKey) {
+            state.currentScenario = scenKey;
+            ['A', 'B', 'C'].forEach(k => {
+                document.getElementById(`scenBtn-${k}`).className = (k === scenKey)
+                    ? "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-600 shadow-sm whitespace-nowrap"
+                    : "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900 whitespace-nowrap";
+            });
+
+            const scen = scenarios[scenKey];
+            document.getElementById('scenarioDetailsCard').innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-start gap-3">
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-base">${scen.title}</h4>
+                        <p class="text-xs text-slate-600 mt-1">${scen.context}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-1 rounded text-[11px] font-bold border ${scen.badgeColor}">${scen.variables.P}</span>
+                        <span class="px-2 py-1 rounded text-[11px] font-bold border ${scen.badgeColor}">${scen.variables.D}</span>
+                        <span class="px-2 py-1 rounded text-[11px] font-bold border ${scen.badgeColor}">${scen.variables.I}</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dctResults').classList.add('hidden');
+        }
+
+        // MOTORE DI ANALISI DCT (API GEMINI CON FALLBACK EURISTICO LOCALE)
+        async function analyzeDctSubmission() {
+            const inputVal = document.getElementById('dctInput').value.trim();
+            if (!inputVal) {
+                alert("Inserisci un testo in italiano prima di avviare l'analisi.");
+                return;
+            }
+
+            document.getElementById('dctLoading').classList.remove('hidden');
+            document.getElementById('dctResults').classList.add('hidden');
+
+            const scen = scenarios[state.currentScenario];
+            let resultJson = null;
+
+            if (state.apiKey) {
+                try {
+                    const prompt = `Analizza la produzione in italiano LS2 dell'apprendente (QCER ${state.profile.cefr}, Repertorio: L1 Arabo, L2 Francese, LS1 Inglese).
+Scenario: ${scen.title} (${scen.variables.P}, ${scen.variables.D}, ${scen.variables.I}).
+Testo: "${inputVal}"`;
+                    const sysInst = `Sei un esperto di pragmatica dell'italiano (SSD L-LIN/02). Rileva attentamente se c'è un PRAGMATIC TRANSFER da L1 Arabo, L2 Francese o LS1 Inglese.
+Rispondi ESATTAMENTE in questo formato JSON:
+{
+  "politenessScore": <0-100>,
+  "sociopragmaticScore": <0-100>,
+  "headActType": "Diretto" | "Indiretto Convenzionale" | "Indiretto Non Convenzionale",
+  "headActExplanation": "spiegazione breve dell'atto di testa",
+  "internalModifiers": ["array di modificatori interni"],
+  "externalModifiers": ["array di modificatori esterni"],
+  "transferDetected": true o false,
+  "transferSource": "Transfer L1 Arabo" | "Transfer L2 Francese" | "Transfer LS1 Inglese" | "Nessuno",
+  "transferExplanation": "spiegazione dettagliata del calco",
+  "scaffoldingSuggestion": "consigli pratici di riscrittura pragmatica"
+}`;
+                    resultJson = await callGeminiApiJson(prompt, sysInst);
+                } catch (err) {
+                    console.warn("API Error, uso del motore euristico locale:", err);
+                    resultJson = runLocalHeuristicAnalysis(inputVal, state.currentScenario);
+                }
+            } else {
+                await new Promise(r => setTimeout(r, 600));
+                resultJson = runLocalHeuristicAnalysis(inputVal, state.currentScenario);
+            }
+
+            document.getElementById('dctLoading').classList.add('hidden');
+            renderDctResults(resultJson, inputVal);
+        }
+
+        // MOTORE EURISTICO LOCALE PER L'ITALIANO LS2
+        function runLocalHeuristicAnalysis(text, scenKey) {
+            const t = text.toLowerCase();
+            let score = 50;
+            let transfer = false;
+            let source = "Nessuno";
+            let expl = "";
+            let headAct = "Diretto";
+            let internal = [];
+            let external = [];
+
+            const containsCondizionale = t.includes('vorrei') || t.includes('chiederai') || t.includes('potrebbe') || t.includes('potesse') || t.includes('sarei');
+            const containsLei = t.includes('lei') || t.includes('le ') || t.includes('la ') || t.includes('professore') || t.includes('signor');
+            const containsImperativo = t.includes('dammi') || t.includes('voglio') || t.includes('dammi un') || t.includes('fammi');
+
+            if (containsCondizionale) {
+                score += 30;
+                headAct = "Indiretto Convenzionale";
+                internal.push("Condizionale di cortesia");
+            }
+            if (containsLei) {
+                score += 15;
+                internal.push("Allocutivo Formale (Lei)");
+            }
+            if (t.includes('per favore') || t.includes('per cortesia') || t.includes('gentilmente')) {
+                score += 10;
+                internal.push("Attenuatore lessicale");
+            }
+            if (t.length > 50) {
+                external.push("Giustificazione della richiesta");
+            }
+
+            if (t.includes('voglio') || t.includes('voglio chiedere')) {
+                transfer = true;
+                source = "Transfer LS1 Inglese";
+                expl = "Calco dall'inglese 'I want to ask'. In italiano con un superiore/docente si usa il condizionale ('vorrei / Le chiederei').";
+            } else if (t.includes('posso avere')) {
+                transfer = true;
+                source = "Transfer LS1 Inglese";
+                expl = "Calco dalla struttura inglese 'Can I have...?'. In italiano si preferisce 'Vorrei...' o 'Mi darebbe...'.";
+            } else if ((scenKey === 'B' || scenKey === 'C') && (t.includes('tu ') || t.includes('vuoi') || t.includes('puoi'))) {
+                transfer = true;
+                source = "Transfer L2 Francese";
+                expl = "Uso informale del 'tu' dovuto all'incertezza sulla selezione del registro formale ('Lei'), tipico del calco dal Tu/Vous francese o dall'inglese 'You'.";
+            } else if (containsImperativo && scenKey !== 'A') {
+                transfer = true;
+                source = "Transfer L1 Arabo";
+                expl = "Uso dell'atto diretto imperativo mitigato solo dall'allocutivo relazionale. In italiano occorre la mitigazione morfologica.";
+            }
+
+            return {
+                politenessScore: Math.min(100, Math.max(20, score)),
+                sociopragmaticScore: Math.min(100, Math.max(25, score + 5)),
+                headActType: headAct,
+                headActExplanation: containsCondizionale ? "Atto indiretto convenzionale con verbo attenuato." : "Atto diretto con verbi al presente/imperativo.",
+                internalModifiers: internal,
+                externalModifiers: external,
+                transferDetected: transfer,
+                transferSource: source,
+                transferExplanation: expl,
+                scaffoldingSuggestion: transfer 
+                    ? "Per evitare il calco, sostituisci la forma indicativa/imperativa con il condizionale ('Vorrei chiederLe...') e assicurati di usare l'allocutivo formale."
+                    : "Buona formulazione pragmalinguistica! Continua ad arricchire i modificatori esterni (es. scusa preparatoria)."
+            };
+        }
+
+        function renderDctResults(res, inputVal) {
+            document.getElementById('dctResults').classList.remove('hidden');
+
+            document.getElementById('resPolitenessScore').innerText = res.politenessScore;
+            document.getElementById('resPolitenessRating').innerText = res.politenessScore >= 80 ? 'Elevato' : (res.politenessScore >= 60 ? 'Medio' : 'Insufficiente');
+            
+            document.getElementById('resSociopragmaticScore').innerText = res.sociopragmaticScore;
+            document.getElementById('resSociopragmaticRating').innerText = res.sociopragmaticScore >= 75 ? 'Adeguato' : 'Inadeguato';
+
+            const sourceCard = document.getElementById('resTransferSourceCard');
+            const transferIcon = document.getElementById('resTransferIcon');
+            const transferSource = document.getElementById('resTransferSource');
+            const transferStatus = document.getElementById('resTransferStatus');
+            const transferBox = document.getElementById('transferExplanationBox');
+
+            if (res.transferDetected && res.transferSource !== 'Nessuno') {
+                sourceCard.className = "bg-amber-50 border border-amber-200 p-5 rounded-2xl shadow-sm flex items-center space-x-4";
+                transferIcon.className = "w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl";
+                transferIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+                transferSource.innerText = res.transferSource;
+                transferStatus.innerText = "Rilevato Calco Linguistico";
+
+                transferBox.classList.remove('hidden');
+                document.getElementById('transferExplanationText').innerText = res.transferExplanation;
+            } else {
+                sourceCard.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4";
+                transferIcon.className = "w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl";
+                transferIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+                transferSource.innerText = "Nessun Calco Grave";
+                transferStatus.innerText = "Produzione Autonoma";
+                transferBox.classList.add('hidden');
+            }
+
+            document.getElementById('resHeadActType').innerText = res.headActType;
+            document.getElementById('resHeadActDesc').innerText = res.headActExplanation || 'Analisi completata.';
+
+            document.getElementById('resInternalMods').innerHTML = (res.internalModifiers && res.internalModifiers.length) 
+                ? res.internalModifiers.map(m => `<span class="bg-indigo-100 text-indigo-800 text-[11px] font-semibold px-2 py-0.5 rounded border border-indigo-200">${m}</span>`).join('')
+                : `<span class="text-xs text-slate-400 italic">Nessun modificatore interno</span>`;
+
+            document.getElementById('resExternalMods').innerHTML = (res.externalModifiers && res.externalModifiers.length) 
+                ? res.externalModifiers.map(m => `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-semibold px-2 py-0.5 rounded border border-emerald-200">${m}</span>`).join('')
+                : `<span class="text-xs text-slate-400 italic">Nessun modificatore esterno</span>`;
+
+            document.getElementById('resScaffolding').innerText = res.scaffoldingSuggestion;
+
+            // Archiviazione reale nel dataset della ricerca
+            state.researchData.unshift({
+                id: 'S-' + Math.floor(300 + Math.random() * 700),
+                cefr: state.profile.cefr,
+                scenario: state.currentScenario,
+                politeness: res.politenessScore,
+                transfer: res.transferDetected ? res.transferSource : 'Nessuno',
+                headAct: res.headActType,
+                text: inputVal
+            });
+
+            renderSessionTable();
+        }
+
+        // ROLE-PLAY INTERATTIVO
+        function selectInterlocutor(k) {
+            state.currentInterlocutor = k;
+            ['barista', 'prof', 'padrone'].forEach(i => {
+                document.getElementById(`interBtn-${i}`).className = (i === k)
+                    ? "w-full text-left p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/50 transition flex items-center space-x-3"
+                    : "w-full text-left p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition flex items-center space-x-3";
+            });
+
+            const inter = interlocutors[k];
+            document.getElementById('chatAvatar').innerText = inter.initials;
+            document.getElementById('chatAvatar').className = `w-9 h-9 rounded-full ${inter.bg} text-white flex items-center justify-center font-bold text-xs`;
+            document.getElementById('chatTitle').innerText = inter.name;
+            document.getElementById('chatSubtitle').innerText = inter.title;
+
+            initRoleplayChat();
+        }
+
+        function initRoleplayChat() {
+            state.chatHistory = [];
+            const k = state.currentInterlocutor;
+            let greeting = "";
+            if (k === 'barista') greeting = "Buongiorno! Cosa ti preparo oggi?";
+            else if (k === 'prof') greeting = "Buongiorno. Prego, si accomodi. Di cosa desidera parlarmi riguardo alla tesi?";
+            else greeting = "Buongiorno. Mi dica pure per la questione dell'appartamento.";
+
+            state.chatHistory.push({ sender: 'ia', text: greeting });
+            renderChatMessages();
+            updateMoodBadge("Disponibile", "bg-emerald-100 text-emerald-800");
+        }
+
+        function resetRoleplayChat() { initRoleplayChat(); }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = state.chatHistory.map(msg => {
+                if (msg.sender === 'user') {
+                    return `<div class="flex justify-end"><div class="bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none max-w-[80%] text-xs shadow-sm leading-relaxed">${escapeHtml(msg.text)}</div></div>`;
+                } else {
+                    return `<div class="flex justify-start items-start space-x-2"><div class="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px]">IA</div><div class="bg-white border border-slate-200 text-slate-800 p-3.5 rounded-2xl rounded-tl-none max-w-[80%] text-xs shadow-sm leading-relaxed">${escapeHtml(msg.text)}</div></div>`;
+                }
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendRoleplayMessage() {
+            const input = document.getElementById('chatInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            input.value = '';
+            state.chatHistory.push({ sender: 'user', text: val });
+            renderChatMessages();
+
+            let replyObj = null;
+
+            if (state.apiKey) {
+                try {
+                    const inter = interlocutors[state.currentInterlocutor];
+                    const prompt = `Interlocutore: ${inter.name} (${inter.title}). Rispondi al messaggio dell'apprendente di italiano LS2: "${val}".`;
+                    const sysInst = `Rispondi in formato JSON:
+{
+  "replyText": "risposta in italiano del personaggio",
+  "interlocutorMood": "Molto Disponibile" | "Neutrale" | "Infastidito",
+  "politenessScore": <0-100>,
+  "pragmalinguisticFeedback": "spiegazione didattica della cortesia e del registro",
+  "betterAlternative": "alternativa naturale in italiano"
+}`;
+                    replyObj = await callGeminiApiJson(prompt, sysInst);
+                } catch(err) {
+                    replyObj = generateLocalRoleplayReply(val);
+                }
+            } else {
+                await new Promise(r => setTimeout(r, 400));
+                replyObj = generateLocalRoleplayReply(val);
+            }
+
+            state.chatHistory.push({ sender: 'ia', text: replyObj.replyText });
+            renderChatMessages();
+
+            updateMoodBadge(replyObj.interlocutorMood, replyObj.interlocutorMood === 'Infastidito' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800');
+            
+            document.getElementById('turnPolitenessBadge').innerText = `Punteggio Turno: ${replyObj.politenessScore}/100`;
+            document.getElementById('turnFeedbackText').innerHTML = `<p class="font-medium text-slate-800">${escapeHtml(replyObj.pragmalinguisticFeedback)}</p><p class="mt-1 text-indigo-600 font-semibold">💡 Alternativa: "${escapeHtml(replyObj.betterAlternative)}"</p>`;
+        }
+
+        function generateLocalRoleplayReply(text) {
+            const t = text.toLowerCase();
+            const isProf = state.currentInterlocutor === 'prof';
+            const usesTu = isProf && (t.includes('tu ') || t.includes('vuoi') || t.includes('puoi'));
+
+            if (usesTu) {
+                return {
+                    replyText: "Mi scusi, ma le chiederei di darci del 'Lei'. Di cosa voleva parlarmi precisamente?",
+                    interlocutorMood: "Infastidito",
+                    politenessScore: 35,
+                    pragmalinguisticFeedback: "Hai usato l'allocutivo informale 'tu' con il docente universitario (calco dal Vous/Tu o dall'inglese You).",
+                    betterAlternative: "Professore, Le chiedo cortesemente se potesse aiutarmi..."
+                };
+            }
+
+            return {
+                replyText: "Certamente, capisco la richiesta. Vediamo come possiamo organizzarci.",
+                interlocutorMood: "Molto Disponibile",
+                politenessScore: 85,
+                pragmalinguisticFeedback: "Ottima scelta di registro e tono pragmatico adeguato.",
+                betterAlternative: "Formulazione corretta e naturale."
+            };
+        }
+
+        function updateMoodBadge(mood, cssClass) {
+            const badge = document.getElementById('interlocutorMoodBadge');
+            badge.innerText = mood;
+            badge.className = `px-2.5 py-1 rounded-full text-xs font-bold ${cssClass}`;
+        }
+
+        function updateComparativeView() {
+            const scenKey = document.getElementById('compScenarioSelect').value;
+            const scen = scenarios[scenKey];
+            document.getElementById('compNativeText').innerText = `"${scen.nativeIdeal}"`;
+            document.getElementById('compAiText').innerText = `"${scen.aiIdeal}"`;
+        }
+
+        // TABELLA E GRAFICI DASHBOARD
+        function renderSessionTable() {
+            const tbody = document.getElementById('sessionLogTableBody');
+            tbody.innerHTML = state.researchData.map(item => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3 font-mono text-slate-500">${item.id}</td>
+                    <td class="p-3 font-bold text-slate-800">${item.cefr}</td>
+                    <td class="p-3">Scenario ${item.scenario}</td>
+                    <td class="p-3 font-bold ${item.politeness >= 70 ? 'text-emerald-600' : 'text-amber-600'}">${item.politeness}/100</td>
+                    <td class="p-3">${item.transfer === 'Nessuno' ? '<span class="text-emerald-600 font-medium">Nessuno</span>' : `<span class="text-amber-700 font-semibold">${item.transfer}</span>`}</td>
+                    <td class="p-3 text-slate-500">${item.headAct}</td>
+                    <td class="p-3 text-slate-600 italic truncate max-w-[180px]">${escapeHtml(item.text || '')}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('statTotalSessions').innerText = state.researchData.length;
+            const avg = Math.round(state.researchData.reduce((acc, curr) => acc + curr.politeness, 0) / state.researchData.length);
+            document.getElementById('statAvgPoliteness').innerText = `${avg}/100`;
+            const failures = state.researchData.filter(d => d.transfer !== 'Nessuno').length;
+            document.getElementById('statFailureRate').innerText = `${Math.round((failures / state.researchData.length) * 100)}%`;
+        }
+
+        function initCharts() {
+            const ctxRadar = document.getElementById('ccsarpRadarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Condizionale', 'Mitigatori Lessicali', 'Preparatori', 'Uso del Lei', 'Formule Affiliazione'],
+                    datasets: [{
+                        label: 'Apprendenti LS2 (Campione)',
+                        data: [60, 45, 50, 75, 55],
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 2
+                    }, {
+                        label: 'Parlanti Nativi (Target)',
+                        data: [95, 90, 85, 95, 90],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10b981',
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 100 } } }
+            });
+
+            const ctxBar = document.getElementById('cefrBarChart').getContext('2d');
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['A1', 'A2', 'B1', 'B2', 'C1', 'IA (Gemini)', 'Nativo'],
+                    datasets: [{
+                        label: 'Indice Cortesia Medio',
+                        data: [38, 52, 65, 78, 89, 93, 96],
+                        backgroundColor: ['#e2e8f0', '#cbd5e1', '#818cf8', '#4f46e5', '#0284c7', '#0369a1', '#10b981'],
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        function updateDashboardCharts() {
+            if (radarChartInstance && barChartInstance) {
+                radarChartInstance.update();
+                barChartInstance.update();
+            }
+        }
+
+        // ESPORTAZIONE REALE DEL DATASET (CSV / JSON)
+        function exportResearchData(format) {
+            if (format === 'json') {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.researchData, null, 2));
+                const a = document.createElement('a');
+                a.setAttribute("href", dataStr);
+                a.setAttribute("download", `PragmaLab_LS2_Dataset_${Date.now()}.json`);
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else if (format === 'csv') {
+                const headers = ["ID", "QCER", "Scenario", "IndiceCortesia", "FonteTransfer", "AttoDiTesta", "TestoProdotto"];
+                const rows = state.researchData.map(d => [
+                    d.id,
+                    d.cefr,
+                    d.scenario,
+                    d.politeness,
+                    `"${d.transfer}"`,
+                    `"${d.headAct}"`,
+                    `"${(d.text || '').replace(/"/g, '""')}"`
+                ]);
+                
+                let csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const a = document.createElement("a");
+                a.setAttribute("href", encodedUri);
+                a.setAttribute("download", `PragmaLab_LS2_Dataset_Dottorato_${Date.now()}.csv`);
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+        }
+
+        // HELPER PER API GEMINI
+        async function callGeminiApiJson(promptText, systemInstructionText) {
+            const apiKey = state.apiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: { parts: [{ text: systemInstructionText }] },
+                generationConfig: { responseMimeType: "application/json" }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Errore chiamata API Gemini");
+
+            const data = await response.json();
+            const jsonString = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!jsonString) throw new Error("Risposta vuota");
+            return JSON.parse(jsonString);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
